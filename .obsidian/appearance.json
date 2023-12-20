@@ -1,4 +1,9 @@
 {
   "accentColor": "",
-  "cssTheme": "Minimal"
+  "cssTheme": "Minimal",
+  "textFontFamily": "SF Pro",
+  "baseFontSize": 18,
+  "nativeMenus": false,
+  "translucency": true,
+  "monospaceFontFamily": "iA Writer Quattro V Regular"
 }

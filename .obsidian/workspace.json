@@ -4,19 +4,15 @@
     "type": "split",
     "children": [
       {
-        "id": "77c0e9e73c7f6fb8",
+        "id": "e55d032f7e8f0060",
         "type": "tabs",
         "children": [
           {
-            "id": "7e08b8a1eb9f116a",
+            "id": "b9aac605c2ca3800",
             "type": "leaf",
             "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Java/SpringSecurity/实现.md",
-                "mode": "source",
-                "source": false
-              }
+              "type": "empty",
+              "state": {}
             }
           }
         ]
@@ -85,7 +81,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Java/SpringSecurity/实现.md",
+                "file": "Java/函数式编程-Stream流.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -102,7 +98,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Java/SpringSecurity/实现.md",
+                "file": "Java/函数式编程-Stream流.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -125,16 +121,16 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Java/SpringSecurity/实现.md"
+                "file": "Java/函数式编程-Stream流.md"
               }
             }
           }
-        ]
+        ],
+        "currentTab": 3
       }
     ],
     "direction": "horizontal",
-    "width": 300,
-    "collapsed": true
+    "width": 300
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -147,14 +143,19 @@
       "obsidian-hypothesis-plugin:Sync your hypothesis highlights": false
     }
   },
-  "active": "7e08b8a1eb9f116a",
+  "active": "809b146d496fa1f9",
   "lastOpenFiles": [
+    "Pics/Pasted image 20231220231944.png",
+    "Pics/Pasted image 20231220231858.png",
+    "Pics/Pasted image 20231220231755.png",
+    "Pics/Pasted image 20231220231559.png",
+    "Java/函数式编程-Stream流.md",
     "Java/SpringSecurity/入门案例.md",
     "Java/SpringSecurity/实现.md",
     "Java/SpringSecurity/SpringSecurity快速开始.md",
+    "XinZhou/我的账号.md",
     "Pics/Pasted image 20231216221225.png",
     "Pasted image 20231216215135.png",
-    "XinZhou/我的账号.md",
     "Pasted image 20231216214904.png",
     "Pics/Pasted image 20231216194405.png",
     "Pics/Pasted image 20231216170059.png",
