@@ -1,3 +1,72 @@
+# 快速入门
+## 准备工作：创建一个 SpringBoot 工程
+## 引入 SpringSecurity
+```java
+<dependency>  
+    <groupId>org.springframework.boot</groupId>  
+    <artifactId>spring-boot-starter-security</artifactId>  
+</dependency>
+```
+- 引入依赖后我们在尝试访问之前的接口会自动跳转到 SpringSecurity 的默认登录页面，默认用户是 user，密码会输出在控制台。
+# 认证
+## 登录校验流程
+![[Pasted image 20231216164106.png]]
+## SpringSecurity 完整流程
+- SpringSecurity 的原理其实就是一个过滤器链。
+![[Pasted image 20231216170059.png]]
+- UsernamePasswordAuthenticationFilter：负责处理我们在登录页填写了用户名密码后的登录请求
+- ExceptionTranslationFilter：处理过滤器链中抛出的任何 AccessDeniedException 和 AuthenticationException。
+- FilterSecurityInterceptor：负责权限校验的过滤器
+	 我们可一通过 Debug 调试查看当前系统中 SpringSecurity 过滤器链中有哪些过滤器及他们的顺序
+![[Pasted image 20231216194405.png]]
+## 认证流程详解
+![[Pasted image 20231216221225.png]]
+- Authentication 接口：他的实现类，表示当前访问系统的用户，封装了用户相关信息。
+- AuthenticationManager 接口：定义了认证 Authentication 的方法。
+- UserDetailsService 接口：加载用户特定数据的核心接口。里面定义了一个根据用户名查询用户信息的方法。
+- UserDetails 接口：提供核心用户信息。通过 UserDetailService 根据用户名获取处理的用户信息要封装成 UserDetails 对象返回。然后将这些信息封装到 Authentication 对象中。
+## 解决问题
+### 登录
+1. 自定义登录接口
+	调用 ProviderManager 的方法进行认证，如果认证通过生成 JWT，把用户信息存入 Redis 中。
+1. 自定义 UserDetailsService 在这个实现类中去查询数据库
+### 校验
+1. 定义 JWT 认证过滤器
+	获取 token
+	解析 token 获取其中的 userid
+	从 redis 中获取用户信息
+	存入SecurityContextHolder
+
+### 实现
+- 数据库准备
+```sql
+CREATE TABLE sys_user ( id BIGINT(20) NOT NULL AUTO_INCREMENT COMMENT '主键', user_name VARCHAR(64) NOT NULL COMMENT '用户名', nick_name VARCHAR(64) NOT NULL COMMENT '昵称', password VARCHAR(64) NOT NULL COMMENT '密码', status CHAR(1) DEFAULT '0' COMMENT '账号状态（0正常，1停用）', email VARCHAR(64) COMMENT '邮箱', phonenumber VARCHAR(32) COMMENT '手机号', sex CHAR(1) COMMENT '用户性别（0男，1女，2未知）', avatar VARCHAR(128) COMMENT '头像', user_type CHAR(1) NOT NULL DEFAULT '1' COMMENT '用户类型（0管理员，1普通用户）', create_by BIGINT(20) COMMENT '创建人的用户id', create_time DATETIME COMMENT '创建时间', update_by BIGINT(20) COMMENT '更新人', update_time DATETIME COMMENT '更新时间', del_flag INT(11) DEFAULT '0' COMMENT '删除标志（0代表未删除，1代表已删除）', PRIMARY KEY (id) ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COMMENT='用户表';
+```
+- 引入 MybatisPlus 和 Mysql 驱动依赖
+```xml
+<dependency>  
+    <groupId>com.baomidou</groupId>  
+    <artifactId>mybatis-plus-boot-starter</artifactId>  
+    <version>3.0.5</version>  
+</dependency>  
+<dependency>  
+    <groupId>mysql</groupId>  
+    <artifactId>mysql-connector-java</artifactId>  
+</dependency>
+```
+- 配置数据库信息
+```ymal
+server:  
+  port: 8081  
+  
+spring:  
+  datasource:  
+    url: jdbc:mysql://localhost:3306/securitydb?characterEncoding=utf-8&serverTimezone=UTC  
+    username: root  
+    password:  
+    driver-class-name: com.mysql.cj.jdbc.Driver
+```
+- 利用 MybatisX 插件快速生成代码
 ### 准备工作
 1. 添加依赖
 ```xml
@@ -489,4 +558,4 @@ public class WebUtils {
     }  
 }
 ```
-5. 实体类
+5. 实体类（已快速生成）
