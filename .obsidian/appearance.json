@@ -1,8 +1,8 @@
 {
   "accentColor": "",
   "cssTheme": "Minimal",
-  "textFontFamily": "iA Writer Quattro V Italic",
-  "baseFontSize": 19,
+  "textFontFamily": "iA Writer Quattro V Regular",
+  "baseFontSize": 20,
   "nativeMenus": false,
   "translucency": true,
   "monospaceFontFamily": "SF Mono",
