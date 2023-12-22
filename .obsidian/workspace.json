@@ -13,7 +13,7 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Java/myblog/2.博客前台模块.md",
+                "file": "Project/MyBlog/1.项目搭建与准备.md",
                 "mode": "preview",
                 "source": false
               }
@@ -85,7 +85,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Java/myblog/2.博客前台模块.md",
+                "file": "Project/MyBlog/1.项目搭建与准备.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -102,7 +102,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Java/myblog/2.博客前台模块.md",
+                "file": "Project/MyBlog/1.项目搭建与准备.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -125,7 +125,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Java/myblog/2.博客前台模块.md"
+                "file": "Project/MyBlog/1.项目搭建与准备.md"
               }
             }
           }
@@ -149,32 +149,33 @@
   },
   "active": "b9aac605c2ca3800",
   "lastOpenFiles": [
+    "Project/MyBlog/2.博客前台模块.md",
+    "Project/MyBlog/1.项目搭建与准备.md",
+    "未命名.md",
+    "Project",
+    "Java/SpringSecurity/SpringSecurity study.md",
+    "Pics/Pasted image 20231222231535.png",
+    "Java/函数式编程-Stream流.md",
+    "Java/MybatisPlus/11.多数据源.md",
+    "Java/MybatisPlus/6.条件构造器和常用接口.md",
+    "Java/MybatisPlus/7.分页插件.md",
     "Pics/Pasted image 20231221223044.png",
     "Pics/Pasted image 20231221222806.png",
     "Pics/Pasted image 20231221220012.png",
     "Pics/Pasted image 20231221213915.png",
     "Pics/Pasted image 20231221205536.png",
-    "Java/myblog/1.项目搭建与准备.md",
-    "Java/myblog/2.博客前台模块.md",
-    "Java/myblog",
+    "Project/MyBlog",
     "Java/mybolg.md",
     "Pics/Pasted image 20231221203823.png",
     "Pics/Pasted image 20231221203750.png",
     "Java/MybatisPlus/12.MyBatisX插件.md",
-    "Java/SpringSecurity/SpringSecurity study.md",
-    "Java/MybatisPlus/7.分页插件.md",
-    "Java/MybatisPlus/6.条件构造器和常用接口.md",
     "Java/MybatisPlus/8.乐观锁插件.md",
     "Java/MybatisPlus/9.通用枚举.md",
     "Java/MybatisPlus/10.代码生成器.md",
-    "Java/MybatisPlus/11.多数据源.md",
-    "Java/函数式编程-Stream流.md",
     "Java/MybatisPlus/1.MyBatis-Plus简介.md",
     "Java/MybatisPlus/2.入门案例.md",
     "Pics/Pasted image 20231221011013.png",
     "Pics/Pasted image 20231221180110.png",
-    "Pics/Pasted image 20231221180107.png",
-    "Pics/Pasted image 20231221180103.png",
     "Java/MybatisPlus/5.常用注解.md",
     "Java/MybatisPlus/4.通用Service.md",
     "Java/MybatisPlus/3.BaseMapper.md",
@@ -189,7 +190,6 @@
     "新建文本文档.txt",
     "ob",
     "Hypothes",
-    "Daily",
-    "XinZhou"
+    "Daily"
   ]
 }
