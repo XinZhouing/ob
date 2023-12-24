@@ -26,16 +26,16 @@
 - UserDetailsService 接口：加载用户特定数据的核心接口。里面定义了一个根据用户名查询用户信息的方法。
 - UserDetails 接口：提供核心用户信息。通过 UserDetailService 根据用户名获取处理的用户信息要封装成 UserDetails 对象返回。然后将这些信息封装到 Authentication 对象中。
 ## 解决问题
-### 登录
-1. 自定义登录接口
+- 登录
+	1. 自定义登录接口
 	调用 ProviderManager 的方法进行认证，如果认证通过生成 JWT，把用户信息存入 Redis 中。
-1. 自定义 UserDetailsService 在这个实现类中去查询数据库
-### 校验
-1. 定义 JWT 认证过滤器
-	获取 token
-	解析 token 获取其中的 userid
-	从 redis 中获取用户信息
-	存入SecurityContextHolder
+	2. 自定义 UserDetailsService 在这个实现类中去查询数据库
+- 校验
+	1. 定义 JWT 认证过滤器
+		获取 token
+		解析 token 获取其中的 userid
+		从 redis 中获取用户信息
+		存入SecurityContextHolder
 
 ### 实现
 - 数据库准备
@@ -153,7 +153,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;  
 import org.springframework.data.redis.core.RedisTemplate;  
 import org.springframework.data.redis.serializer.StringRedisSerializer;  
-import org.study.utils.FastJsonRedisSerializer;  
+import org.springframework.data.redis.serializer.StringRedisSerializer;  
   
 @Configuration  
 public class RedisConfig {  
@@ -558,4 +558,825 @@ public class WebUtils {
     }  
 }
 ```
-5. 实体类（已快速生成）
+5. 实体类（已使用 MybatisX 快速生成）
+### 核心代码实现
+创建一个类实现 UserDetailService 接口，重写其中的方法，用于从数据库中查询用户信息。
+```java
+@Service  
+public class UserDetailsServiceImpl implements UserDetailsService {  
+    @Autowired  
+    private UserMapper userMapper;  
+  
+    @Override  
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {  
+  
+        //查询用户信息  
+        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();  
+        queryWrapper.eq(User::getUserName,username);  
+        User user = userMapper.selectOne(queryWrapper);  
+  
+        //如果没有查询到用户，抛出异常  
+        Optional<User> userOptional = Optional.ofNullable(user);  
+        try {  
+            userOptional.orElseThrow((Supplier<Throwable>) () -> new RuntimeException("用户名或密码错误"));  
+        } catch (Throwable e) {  
+            throw new RuntimeException(e);  
+        }  
+        //TODO:查询对应的权限信息  
+  
+        //把数据封装成UserDetails返回  
+        return new LoginUser(user);  
+    }  
+}
+```
+UserDetailService 方法的返回值为 UserDetail 类型，需要定义一个类来实现该接口并将用户信息封装到其中。
+```java
+package com.xinzhou.domain;  
+  
+import lombok.AllArgsConstructor;  
+import lombok.Data;  
+import lombok.NoArgsConstructor;  
+import org.springframework.security.core.GrantedAuthority;  
+import org.springframework.security.core.userdetails.UserDetails;  
+  
+import java.util.Collection;  
+  
+@Data  
+@AllArgsConstructor  
+@NoArgsConstructor  
+public class LoginUser implements UserDetails {  
+  
+    private User user;  
+    @Override  
+    public Collection<? extends GrantedAuthority> getAuthorities() {  
+        return null;  
+    }  
+  
+    @Override  
+    public String getPassword() {  
+        return user.getPassword();  
+    }  
+  
+    @Override  
+    public String getUsername() {  
+        return user.getUserName();  
+    }  
+  
+    @Override  
+    public boolean isAccountNonExpired() {  
+        return true;  
+    }  
+  
+    @Override  
+    public boolean isAccountNonLocked() {  
+        return true;  
+    }  
+  
+    @Override  
+    public boolean isCredentialsNonExpired() {  
+        return true;  
+    }  
+  
+    @Override  
+    public boolean isEnabled() {  
+        return true;  
+    }  
+}
+```
+### 测试
+需要在表中加入数据，如密码为明文，则需在密码前加入{noop}
+![[Pasted image 20231223112232.png]]
+![[Pasted image 20231223112341.png]]
+### 密码加密存储
+项目中我们不会对密码进行明文存储，默认使用 PasswordEncoder 要求数据库中密码格式为{id}password，我们一般不采用该方式
+一般使用 SpringSecurity 中提供的 BCryptPasswordEncoder。
+我们只需要把 BCryptPasswordEncoder 对象注入到 Spring 容器中，SpringSecurity 就会使用该 PasswordEncoder 来进行密码校验，我们可以定义一个 SpringSecurity 配置类，要求这个配置类继承 WebSecurityConfigurerAdapter。
+```java
+@Configuration  
+public class SecurityConfig extends WebSecurityConfigurerAdapter {  
+  
+    //创建BCryptPasswordEncoder注入容器  
+    @Bean  
+    public PasswordEncoder passwordEncoder(){  
+        return new BCryptPasswordEncoder();  
+    }  
+}
+```
+- 测试
+```java
+@Autowired  
+private PasswordEncoder passwordEncoder;  
+  
+  
+@Test  
+public void testPasswordEncoder(){  
+    //对密码进行加密  
+    String encode = passwordEncoder.encode("1234");  
+    System.out.println(encode);  
+    //$2a$10$BbaUhmUweyGkexagqQykouGzGMqR7RzmP6AlREaooxuFdOt8aQgmO  
+    //将加密后的密文与密码对比  
+    boolean flag = passwordEncoder.matches("1234", "$2a$10$BbaUhmUweyGkexagqQykouGzGMqR7RzmP6AlREaooxuFdOt8aQgmO");  
+    System.out.println(flag);  
+    //true  
+}
+```
+### 登录接口
+我们接下来自定义一个登录接口，让 SpringSecurity 对这个接口进行放行。在接口中我们通过 AuthenticationManager 的 authenticate 方法来进行用户认证，所以需要在 SecurityConfig 中配置把 AuthenticationManager 注入容器。
+如果认证成功，生成 jwt，放入响应中返回，并且为了让用户下次请求时能通过 jwt 识别具体是哪个用户，我们需要把用户信息存入 redis。
+- 自定义登录接口 
+```java
+@RestController  
+public class LoginController {  
+  
+    @Autowired  
+    private LoginService loginService;  
+  
+    @PostMapping("/user/login")  
+    public ResponseResult login(@RequestBody User user){  
+        //登录  
+        return loginService.login(user);  
+    }  
+}
+```
+- 放行配置及注入 AuthentictionManager
+```java
+@Configuration  
+public class SecurityConfig extends WebSecurityConfigurerAdapter {  
+  
+    //创建BCryptPasswordEncoder注入容器  
+    @Bean  
+    public PasswordEncoder passwordEncoder(){  
+        return new BCryptPasswordEncoder();  
+    }  
+  
+    //在 SecurityConfig 中配置把 AuthenticationManager 注入容器  
+    @Bean  
+    @Override    public AuthenticationManager authenticationManagerBean() throws Exception {  
+        return super.authenticationManagerBean();  
+    }  
+  
+    //让 SpringSecurity 对这个登录接口进行放行  
+    @Override  
+    protected void configure(HttpSecurity http) throws Exception {  
+        http  
+                //关闭csrf  
+                .csrf().disable()  
+                //不通过Session获取SecurityContext  
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)  
+                .and()  
+                .authorizeRequests()  
+                //对于登录接口，允许匿名访问  
+                .antMatchers("/user/login").anonymous()  
+                //除上面外所有的授权都需要授权认证  
+                .anyRequest().authenticated();  
+    }  
+}
+```
+- 实现类
+```java
+package com.xinzhou.service.impl;  
+  
+import com.xinzhou.domain.LoginUser;  
+import com.xinzhou.domain.ResponseResult;  
+import com.xinzhou.domain.User;  
+import com.xinzhou.service.LoginService;  
+import com.xinzhou.utils.JWTUtil;  
+import com.xinzhou.utils.RedisCache;  
+import org.springframework.beans.factory.annotation.Autowired;  
+import org.springframework.security.authentication.AuthenticationManager;  
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;  
+import org.springframework.security.core.Authentication;  
+import org.springframework.stereotype.Service;  
+  
+import javax.swing.text.html.Option;  
+import java.util.HashMap;  
+import java.util.Map;  
+import java.util.Optional;  
+import java.util.function.Supplier;  
+  
+@Service  
+public class LoginServiceImpl implements LoginService {  
+    @Autowired  
+    private AuthenticationManager authenticationManager;  
+  
+    @Autowired  
+    private RedisCache redisCache;  
+    /**  
+     * 登录  
+     * @return  
+     */  
+    @Override  
+    public ResponseResult login(User user) {  
+  
+        //创建一个Authentication的实现类对象，用于存储用户名和密码，并作为参数传入authenticationManager的authenticate方法中  
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(user.getUserName(),user.getPassword());  
+        //通过 AuthenticationManager 的 authenticate 方法来进行用户认证  
+        Authentication authenticate = authenticationManager.authenticate(authenticationToken);  
+  
+        //如认证没通过，给出对应提示  
+        try {  
+            Optional.ofNullable(authenticate)  
+                    .orElseThrow((Supplier<Throwable>) () -> new RuntimeException("登录失败"));  
+        } catch (Throwable e) {  
+            throw new RuntimeException(e);  
+        }  
+  
+        //如果认证成功，生成 jwt,并返回  
+        LoginUser loginUser = (LoginUser) authenticate.getPrincipal();  
+        String userId = loginUser.getUser().getId().toString();  
+        String jwt = JWTUtil.createJWT(userId);  
+  
+        Map<String,String> map = new HashMap<>();  
+        map.put("token",jwt);  
+        //把完整的用户信息存入redis,userId作为key  
+        redisCache.setCacheObject("login:"+userId,loginUser);  
+  
+        return new ResponseResult(200,"登录成功",map);  
+    }  
+}
+```
+### 认证过滤器 
+在 filter 中定义一个 JwtAuthenticationTokenFilter 过滤器
+```java
+package com.xinzhou.filter;  
+  
+import com.xinzhou.domain.LoginUser;  
+import com.xinzhou.utils.JWTUtil;  
+import com.xinzhou.utils.RedisCache;  
+import io.jsonwebtoken.Claims;  
+import org.springframework.beans.factory.annotation.Autowired;  
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;  
+import org.springframework.security.core.context.SecurityContextHolder;  
+import org.springframework.stereotype.Component;  
+import org.springframework.util.StringUtils;  
+import org.springframework.web.filter.OncePerRequestFilter;  
+  
+import javax.servlet.FilterChain;  
+import javax.servlet.ServletException;  
+import javax.servlet.http.HttpServletRequest;  
+import javax.servlet.http.HttpServletResponse;  
+import java.io.IOException;  
+import java.util.Objects;  
+  
+@Component  
+public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {  
+    @Autowired  
+    private RedisCache redisCache;  
+  
+    @Override  
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {  
+        //获取token  
+        String token = request.getHeader("token");  
+        //如果没有token则放行  
+        if (!StringUtils.hasText(token)) {  
+            filterChain.doFilter(request, response);  
+            return;  
+        }  
+        //解析token  
+        String userId;  
+        try {  
+            Claims claims = JWTUtil.parseJwt(token);  
+            //获取userId  
+            userId = claims.getSubject();  
+        } catch (Exception e) {  
+            throw new RuntimeException("token非法");  
+        }  
+  
+        //从redis中获取用户信息  
+        String redisKey = "login:" + userId;  
+        //判断获取到的用户是否为空  
+        LoginUser loginUser = redisCache.getCacheObject(redisKey);  
+        if(Objects.isNull(loginUser)){  
+            throw new RuntimeException("用户未登录");  
+        }  
+        //存入SecurityContextHolder中，-->Security过滤器链都是从SecurityContextHolder中获取用户信息  
+        //使用UsernamePasswordAuthenticationToken三个参数的构造，其中会setAuthenticated(true);  
+        //TODO 获取权限信息封装到Authentication中  
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(loginUser, null, null);  
+        SecurityContextHolder.getContext().setAuthentication(authenticationToken);  
+        //放行  
+        filterChain.doFilter(request,response);  
+    }  
+}
+```
+### 配置过滤器
+配置认证过来器在 Security 过滤器链中的位置。
+```java
+package com.xinzhou.config;  
+  
+import com.xinzhou.filter.JwtAuthenticationTokenFilter;  
+import org.springframework.beans.factory.annotation.Autowired;  
+import org.springframework.context.annotation.Bean;  
+import org.springframework.context.annotation.Configuration;  
+import org.springframework.security.authentication.AuthenticationManager;  
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;  
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;  
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;  
+import org.springframework.security.config.http.SessionCreationPolicy;  
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;  
+import org.springframework.security.crypto.password.PasswordEncoder;  
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;  
+  
+@Configuration  
+public class SecurityConfig extends WebSecurityConfigurerAdapter {  
+  
+    //创建BCryptPasswordEncoder注入容器  
+    @Bean  
+    public PasswordEncoder passwordEncoder(){  
+        return new BCryptPasswordEncoder();  
+    }  
+  
+    @Autowired  
+    private JwtAuthenticationTokenFilter jwtAuthenticationTokenFilter;  
+  
+    //在 SecurityConfig 中配置把 AuthenticationManager 注入容器  
+    @Bean  
+    @Override    public AuthenticationManager authenticationManagerBean() throws Exception {  
+        return super.authenticationManagerBean();  
+    }  
+  
+    //让 SpringSecurity 对这个登录接口进行放行  
+    @Override  
+    protected void configure(HttpSecurity http) throws Exception {  
+        http  
+                //关闭csrf  
+                .csrf().disable()  
+                //不通过Session获取SecurityContext  
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)  
+                .and()  
+                .authorizeRequests()  
+                //对于登录接口，允许匿名访问  
+                .antMatchers("/user/login").anonymous()  
+                //除上面外所有的授权都需要授权认证  
+                .anyRequest().authenticated();  
+        //配置认证过滤器  
+        http.addFilterBefore(jwtAuthenticationTokenFilter, UsernamePasswordAuthenticationFilter.class);  
+    }  
+}
+```
+- 测试
+![[Pasted image 20231223141801.png]]
+### 退出登录
+我们只需要定义一个退出登录接口，然后获取 SecurityContextHolder 中的认证信息，再删除 redis 中对应的数据即可。
+```java
+/**  
+ * 退出登录  
+ * @return  
+ */  
+@Override  
+public ResponseResult logout() {  
+    //获取SecurityContextHolder中的用户id  
+    UsernamePasswordAuthenticationToken authentication = (UsernamePasswordAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();  
+    LoginUser loginUser = (LoginUser) authentication.getPrincipal();  
+  
+    Long userId = loginUser.getUser().getId();  
+    //删除redis中的值  
+    redisCache.deleteObject("login:"+userId);  
+    return new ResponseResult(200,"退出成功",null);  
+}
+```
+# 授权
+## 基本流程
+在 SpringSecurity 中，会默认使用 FilterSecurityInterceptor：负责权限校验的过滤器。在 FilterSecurityInterceptor 中会从 SecurityContextHolder 中获取其中的 Authentication，然后获取其中的权限信息。
+所以我们只需当前登录用户的权限信息也存入 Authentication 中，然后设置我们的资源所需权限即可。
+## 授权实现
+### 限制访问资源所需权限
+SpringSecurity 为我们提供了基于注解的权限控制方案，我们可以使用注解去指定访问对应资源所需的权限。
+- 在 SecurityConfig 类中开启相关配置
+`@EnableGlobalMethodSecurity(prePostEnabled=true)`
+- @PreAuthorize
+```java
+@RestController  
+public class HelloController {  
+  
+    @GetMapping("/hello")  
+    @PreAuthorize("hasAuthority('test')")  
+    public String hello(){  
+        return "hello";  
+    }  
+}
+```
+### 封装权限信息
+在写 UserDetailsServiceImpl 时，在查询用户后还需获取对应的权限信息，封装到 UserDetails 中返回。
+我们之前定义了 UserDetails 的实现了 LoginUser，想让其返回封装的权限信息，需要对其进行改造
+```java
+package com.xinzhou.domain;  
+  
+import com.alibaba.fastjson.annotation.JSONField;  
+import lombok.Data;  
+import lombok.NoArgsConstructor;  
+import org.springframework.security.core.GrantedAuthority;  
+import org.springframework.security.core.authority.SimpleGrantedAuthority;  
+import org.springframework.security.core.userdetails.UserDetails;  
+  
+import java.util.Collection;  
+import java.util.List;  
+import java.util.stream.Collectors;  
+  
+@Data  
+@NoArgsConstructor  
+public class LoginUser implements UserDetails {  
+  
+    private User user;  
+  
+    //存储权限信息  
+    private List<String> permissions;  
+  
+    public LoginUser(User user, List<String> permissions) {  
+        this.user = user;  
+        this.permissions = permissions;  
+    }  
+  
+    //存储Spring security所需权限集合  
+    @JSONField(serialize = false)//不将该属性转成json存入redis  
+    private List<SimpleGrantedAuthority> authorities;  
+  
+    @Override  
+    public Collection<? extends GrantedAuthority> getAuthorities() {  
+        if(authorities != null){  
+            return authorities;  
+        }  
+        //把permissions中String类型的权限信息封装成SimpleGrantedAuthority对象返回  
+        authorities = permissions.stream()  
+                .map(SimpleGrantedAuthority::new)  
+                .collect(Collectors.toList());  
+        return authorities;  
+    }  
+  
+    @Override  
+    public String getPassword() {  
+        return user.getPassword();  
+    }  
+  
+    @Override  
+    public String getUsername() {  
+        return user.getUserName();  
+    }  
+  
+    @Override  
+    public boolean isAccountNonExpired() {  
+        return true;  
+    }  
+  
+    @Override  
+    public boolean isAccountNonLocked() {  
+        return true;  
+    }  
+  
+    @Override  
+    public boolean isCredentialsNonExpired() {  
+        return true;  
+    }  
+  
+    @Override  
+    public boolean isEnabled() {  
+        return true;  
+    }  
+}
+```
+- 实现类 UserDetailsServiceImpl 查询对应的权限信息
+```java
+@Service  
+public class UserDetailsServiceImpl implements UserDetailsService {  
+    @Autowired  
+    private UserMapper userMapper;  
+  
+    @Override  
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {  
+  
+        //查询用户信息  
+        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();  
+        queryWrapper.eq(User::getUserName,username);  
+        User user = userMapper.selectOne(queryWrapper);  
+  
+        //如果没有查询到用户，抛出异常  
+        Optional<User> userOptional = Optional.ofNullable(user);  
+        try {  
+            userOptional.orElseThrow((Supplier<Throwable>) () -> new RuntimeException("用户名或密码错误"));  
+        } catch (Throwable e) {  
+            throw new RuntimeException(e);  
+        }  
+        //TODO:查询对应的权限信息  
+        List<String> list = new ArrayList<>(Arrays.asList("test","admin"));  
+  
+  
+        //把数据封装成UserDetails返回  
+        return new LoginUser(user,list);  
+    }  
+}
+```
+- 在认证拦截器中获取权限信息封装到 Authentication中
+```java
+@Component  
+public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {  
+    @Autowired  
+    private RedisCache redisCache;  
+  
+    @Override  
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {  
+        //获取token  
+        String token = request.getHeader("token");  
+        //如果没有token则放行  
+        if (!StringUtils.hasText(token)) {  
+            filterChain.doFilter(request, response);  
+            return;  
+        }  
+        //解析token  
+        String userId;  
+        try {  
+            Claims claims = JWTUtil.parseJwt(token);  
+            //获取userId  
+            userId = claims.getSubject();  
+        } catch (Exception e) {  
+            throw new RuntimeException("token非法");  
+        }  
+  
+        //从redis中获取用户信息  
+        String redisKey = "login:" + userId;  
+        //判断获取到的用户是否为空  
+        LoginUser loginUser = redisCache.getCacheObject(redisKey);  
+        if(Objects.isNull(loginUser)){  
+            throw new RuntimeException("用户未登录");  
+        }  
+        //存入SecurityContextHolder中，-->Security过滤器链都是从SecurityContextHolder中获取用户信息  
+        //使用UsernamePasswordAuthenticationToken三个参数的构造，其中会setAuthenticated(true);  
+        //TODO 获取权限信息封装到Authentication中  
+  
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(loginUser, null, loginUser.getAuthorities());  
+        SecurityContextHolder.getContext().setAuthentication(authenticationToken);  
+        //放行  
+        filterChain.doFilter(request,response);  
+    }  
+}
+```
+### 从数据库查询权限信息
+#### RBAC 权限模型
+Role-Based Access Control：即基于角色的权限控制
+![[Pasted image 20231223160659.png]]
+#### 准备工作
+- 创建数据库表
+```sql
+DROP TABLE IF EXISTS sys_menu;
+CREATE TABLE sys_menu (
+    id bigint(20) NOT NULL AUTO_INCREMENT,
+    menu_name varchar(64) NOT NULL DEFAULT 'NULL' COMMENT '菜单名',
+    path varchar(200) DEFAULT 'NULL' COMMENT '路由地址',
+    component varchar(255) DEFAULT 'NULL' COMMENT '组件路径',
+    visible char(1) DEFAULT '0' COMMENT '菜单状态 (0显示 隐藏)',
+    status char(1) DEFAULT '0' COMMENT '菜单状态 (0正常 1停用)',
+    perms varchar(100) DEFAULT 'NULL' COMMENT '权限标识',
+    icon varchar(100) DEFAULT '#' COMMENT '菜单图标',
+    create_by bigint(20),
+    create_time datetime,
+    update_by bigint(20),
+    update_time datetime,
+    del_flag int(1) DEFAULT '0' COMMENT '是否删除 (0未删除 1已删除)',
+    remark varchar(500) DEFAULT 'NULL' COMMENT '备注',
+    PRIMARY KEY (id)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COMMENT='菜单表';
+```
+```sql
+DROP TABLE IF EXISTS sys_role;
+CREATE TABLE sys_role (
+	id bigint(20) NOT NULL AUTO_INCREMENT,
+	name varchar(128) DEFAULT NULL,
+	role_key varchar(100) DEFAULT NULL COMMENT '角色权限字符串',
+	status char(1) DEFAULT '0' COMMENT '角色状态 (0正常 1停用)',
+	del_flag int(1) DEFAULT '0' COMMENT '是否删除 (0未删除 1已删除)',
+	create_by bigint(200),
+	create_time datetime,
+	update_by bigint(200),
+	update_time datetime,
+	remark varchar(500) DEFAULT 'NULL' COMMENT '备注',
+	PRIMARY KEY (id)
+)ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COMMENT='角色表';
+```
+```sql
+DROP TABLE IF EXISTS sys_role_menu;
+CREATE TABLE sys_role_menu (
+	role_id bigint(200) NOT NULL AUTO_INCREMENT COMMENT '角色ID',
+	menu_id bigint(200) NOT NULL DEFAULT '0' COMMENT '菜单id',
+	PRIMARY KEY (role_id ,menu_id)
+)ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4;
+```
+```sql
+DROP TABLE IF EXISTS sys_user_role;
+CREATE TABLE sys_user_role(
+	user_id bigint(200) NOT NULL AUTO_INCREMENT COMMENT'用户id',
+	role_id bigint(200) NOT NULL DEFAULT '0' COMMENT '角色id',
+	PRIMARY KEY (user_id,role_id)
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+```
+- 查询用户权限信息的 SQL 编写
+	根据 userid 查询 perms 对应的 role 和 menu 都必须为正常状态
+```sql
+SELECT 
+			DISTINCT m.perms
+FROM `sys_user_role` ur
+	LEFT JOIN sys_role r on ur.role_id = r.id
+	LEFT JOIN sys_role_menu rm on ur.role_id = rm.role_id
+	LEFT JOIN sys_menu m on m.id = rm.menu_id
+WHERE
+		user_id = 2
+		AND r.status = 0 AND m.status = 0
+```
+- 创建 menu 表实体类（MybaitsX 生成）
+#### 代码实现
+我们需要根据用户 id 查询到其所对应的权限信息
+```java
+public interface MenuMapper extends BaseMapper<Menu> {  
+  
+    List<String> selectPermsByUserId(Long userId);  
+  
+}
+```
+```xml
+<select id="selectPermsByUserId" resultType="java.lang.String">  
+    SELECT  
+        DISTINCT m.perms    FROM `sys_user_role` ur             LEFT JOIN sys_role r on ur.role_id = r.id             LEFT JOIN sys_role_menu rm on ur.role_id = rm.role_id             LEFT JOIN sys_menu m on m.id = rm.menu_id    WHERE        user_id = #{userId}      AND r.status = 0 AND m.status = 0
+</select>
+```
+- 修改 UserDetailsServiceImpl 中的 TODO: 查询对应的权限信息
+```java
+List<String> list = menuMapper.selectPermsByUserId(user.getId());
+```
+# 自定义失败处理
+我们希望在认证失败或授权失败的情况下也能和我们的接口一样返回相同结构的 json，这样可以让前端进行统一处理。
+在 SpringSecurity 中，认证和授权过程中的异常会被 ExceptionTranslationFilter 捕获。
+如果是认证过程中的异常会被封装成 AuthenticationException 然后调用 AuthenticationEntryPoint 对象的方法进行异常处理。
+如果是授权过程中出现的异常会被封装从 AccessDeniedException 然后调用 AccessDeniedHandler 对象方法进行异常处理。
+所以我们需要自定义异常处理，只需自定义 AuthenticationEntryPoint 和 AccessDeniedHandler 然后配置给 SpringSecurity 即可。
+- 自定义异常类
+```java
+@Component  
+public class AuthenticationEntryPointImpl implements AuthenticationEntryPoint {  
+    @Override  
+    public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {  
+        ResponseResult result = new ResponseResult<>(HttpStatus.UNAUTHORIZED.value(), "用户认证失败，请重新登录");  
+        String json = JSON.toJSONString(result);  
+        //将json写入到响应体中  
+        WebUtils.renderString(response,json);  
+    }  
+}
+```
+```java
+@Component  
+public class AccessDeniedHandlerImpl implements AccessDeniedHandler {  
+    @Override  
+    public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException) throws IOException, ServletException {  
+        ResponseResult result = new ResponseResult<>(HttpStatus.UNAUTHORIZED.value(), "您的权限不足");  
+        String json = JSON.toJSONString(result);  
+        //将json写入到响应体中  
+        WebUtils.renderString(response,json);  
+    }  
+}
+```
+- 对 SecurityConfig 中配置异常处理器
+```java
+@Configuration  
+@EnableGlobalMethodSecurity(prePostEnabled = true)  
+public class SecurityConfig extends WebSecurityConfigurerAdapter {  
+  
+    //创建BCryptPasswordEncoder注入容器  
+    @Bean  
+    public PasswordEncoder passwordEncoder(){  
+        return new BCryptPasswordEncoder();  
+    }  
+  
+    @Autowired  
+    private JwtAuthenticationTokenFilter jwtAuthenticationTokenFilter;  
+  
+    @Autowired  
+    private AuthenticationEntryPoint authenticationEntryPoint;  
+    @Autowired  
+    private AccessDeniedHandler accessDeniedHandler;  
+  
+    //在 SecurityConfig 中配置把 AuthenticationManager 注入容器  
+    @Bean  
+    @Override    public AuthenticationManager authenticationManagerBean() throws Exception {  
+        return super.authenticationManagerBean();  
+    }  
+  
+    //让 SpringSecurity 对这个登录接口进行放行  
+    @Override  
+    protected void configure(HttpSecurity http) throws Exception {  
+        http  
+                //关闭csrf  
+                .csrf().disable()  
+                //不通过Session获取SecurityContext  
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)  
+                .and()  
+                .authorizeRequests()  
+                //对于登录接口，允许匿名访问  
+                .antMatchers("/user/login").anonymous()  
+                //除上面外所有的授权都需要授权认证  
+                .anyRequest().authenticated();  
+        //配置认证过滤器  
+        http.addFilterBefore(jwtAuthenticationTokenFilter, UsernamePasswordAuthenticationFilter.class);  
+  
+        //配置异常处理器  
+        http.exceptionHandling()  
+                //配置认证失败处理器  
+                .authenticationEntryPoint(authenticationEntryPoint)  
+                //配置授权失败处理器  
+                .accessDeniedHandler(accessDeniedHandler);  
+    }  
+}
+```
+# 跨域
+浏览器出于安全考虑，使用 XMLHttpRequest 对象发起 HTTP 请求时必须遵循同源策略，否则就是跨域的 HTTP 请求，默认情况下是被禁止的。同源策略要求源相同才能正常进行通信，即协议、域名、端口号都完全一致。
+- 对 SpringBoot 配置，允许跨域请求
+```java
+package com.xinzhou.config;  
+  
+import org.springframework.context.annotation.Configuration;  
+import org.springframework.web.servlet.config.annotation.CorsRegistry;  
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;  
+@Configuration  
+public class CorsConfig implements WebMvcConfigurer {  
+    public void addCorsMapping(CorsRegistry registry){  
+        //设置允许跨域的路径  
+        registry.addMapping("/**")  
+                //设置允许跨域请求的域名  
+                .allowedOriginPatterns("*")  
+                //是否允许cookie  
+                .allowCredentials(true)  
+                //设置允许的请求方式  
+                .allowedMethods("GET","POST","DELETE","PUT")  
+                //设置允许的header属性  
+                .allowedHeaders("*")  
+                //跨域允许时间  
+                .maxAge(3600);  
+    }  
+}
+```
+- 在 SpringSecurity 的配置文件SecurityConfig 中配置允许跨域
+```java
+//配置允许跨域  
+http.cors();
+```
+# 遗留问题解决
+## 其他权限校验方法
+我们前面都是使用@PreAuthorize 注解，然后在其中使用的是 hasAuthority 方法进行校验。SpringSecurity 还提供了如 hasAnyAuthority、hasRole、hasAnyRole...
+**hasAuthority** 原理：该方法实际执行到了 SecurityExpressionRoot 的 hasAuthority，它内部其实调用了 authentication 的 getAuthorities 方法互殴去用户的权限列表。然后判断我们存入的方法参数是否存在权限列表中。
+**hasAnyAuthority** 方法可以传入多个权限，用户只要用其中一个权限都可以访问对应资源。
+hasRole 要求有对应角色权限才可以访问，但他内部会把我们传入的参数拼接 ROLE_再去比较，所以这种情况需要用户对应的权限也有 ROLE_这个前缀才可以。
+hasAnyRole 有任意角色就可以访问，他内部也会把我们传入的参数拼接 ROLE_再去比较。
+## 自定义权限校验方法
+我们可以自定义自己的权限方法，再@PreAuthorize 注解中使用我们的方法
+```java
+package com.xinzhou.expression;  
+  
+import com.xinzhou.domain.LoginUser;  
+import org.springframework.security.core.Authentication;  
+import org.springframework.security.core.context.SecurityContextHolder;  
+import org.springframework.stereotype.Component;  
+  
+import java.util.List;  
+  
+@Component("ex")  
+public class MyExpressionRoot {  
+    public boolean hasAuthority(String authority){  
+        //获取当前用户的权限  
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();  
+        LoginUser loginUser = (LoginUser) authentication.getPrincipal();  
+        List<String> permissions = loginUser.getPermissions();  
+        //判断用户权限集合中是否存在authority  
+        return permissions.contains(authority);  
+    }  
+}
+```
+- 指定使用自定义的权限校验方法 (再 SPEL 表达式中使用@ex 相当于获取容器中 bean 的名字为 ex 的对象。然后再调用这个对象的方法)
+```java
+@RestController  
+public class HelloController {  
+  
+    @GetMapping("/hello")  
+    @PreAuthorize("@ex.hasAuthority('system:dept:list')")  
+    public String hello(){  
+        return "hello";  
+    }  
+}
+```
+## 基于配置的权限控制
+可以再 SecurityConfig 中配置权限控制
+```java
+        http   
+                .authorizeRequests()  
+                //对于登录接口，允许匿名访问  
+                .antMatchers("/user/login").anonymous()
+                //配置权限控制
+                        .antMatchers("/user/hello").hasAuthority("system:dept:list")
+```
+
+## CSRF
+CSRF 是指跨站请求伪造（Cross-site request forgery），是 web 常见的攻击之一。
+SpringSecurity 去防止 CSRF 攻击的方式是通过后端生成一个 csrf_token，前端发起请求时需要携带该 token，后端会进行校验，没有携带就是伪造的不会允许访问。
+前后端分离的项目的认证信息就是 token，而 token 不需要存储到 cookie 中，并且前端代码去把 token 设置到请求头中才可以，所以 CSRF 攻击就不用考虑了，我们可以在SpringSecurity配置中将 CSRF 关闭。
+## 认证成功处理器
+UsernamePasswordAuthenticationFilter 进行登录认证时，如果认证成功了会调用 AuthenticationSucceesHandler 的方法进行认证失败后的处理。AuthenticationSucceesHandler 就是认证失败处理器
+
+## 认证失败处理器
+UsernamePasswordAuthenticationFilter 进行登录认证时，如果认证失败了会调用 AuthenticationFailureHandler 的方法进行认证失败后的处理。AuthenticationFailureHandler 就是认证失败处理器
+## 其他认证方案
+# 源码解读
