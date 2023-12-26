@@ -4,17 +4,17 @@
     "type": "split",
     "children": [
       {
-        "id": "9dbcfeafdf9e8289",
+        "id": "37b9320913b2de74",
         "type": "tabs",
         "children": [
           {
-            "id": "c84c0df272613e08",
+            "id": "1dbcb840ec8335e4",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
                 "file": "Project/MyBlog/2.博客前台模块.md",
-                "mode": "preview",
+                "mode": "source",
                 "source": false
               }
             }
@@ -147,14 +147,16 @@
       "obsidian-hypothesis-plugin:Sync your hypothesis highlights": false
     }
   },
-  "active": "c84c0df272613e08",
+  "active": "1dbcb840ec8335e4",
   "lastOpenFiles": [
-    "Project/MyBlog/1.项目搭建与准备.md",
-    "Project/MyBlog/2.博客前台模块.md",
+    "Project/IDance/SQL/代表队.md",
+    "Project/IDance/SQL/player.md",
     "Project/IDance/SQL/user、unit.md",
+    "Project/IDance/SQL/competition.md",
+    "Project/MyBlog/2.博客前台模块.md",
+    "Project/MyBlog/1.项目搭建与准备.md",
     "XinZhou/我的账号.md",
     "Java/SpringSecurity/SpringSecurity study.md",
-    "Project/IDance/SQL/competition.md",
     "Java/函数式编程-Stream流.md",
     "Project/IDance/SQL",
     "Project/IDance",
@@ -184,12 +186,10 @@
     "未命名.md",
     "Project",
     "Pics/Pasted image 20231222231535.png",
-    "Java/MybatisPlus/7.分页插件.md",
     "Pics/Pasted image 20231221223044.png",
     "Pics/Pasted image 20231221222806.png",
     "Pics/Pasted image 20231221220012.png",
     "Project/MyBlog",
-    "Java/mybolg.md",
     "Java/MybatisPlus",
     "Java/SpringSecurity",
     "Java",
