@@ -6,5 +6,6 @@
   "nativeMenus": false,
   "translucency": true,
   "monospaceFontFamily": "SF Mono",
-  "interfaceFontFamily": "SF Pro"
+  "interfaceFontFamily": "SF Pro",
+  "theme": "obsidian"
 }
