@@ -14,7 +14,7 @@
               "type": "markdown",
               "state": {
                 "file": "Project/MyBlog/2.博客前台模块.md",
-                "mode": "preview",
+                "mode": "source",
                 "source": false
               }
             }
@@ -149,6 +149,9 @@
   },
   "active": "1dbcb840ec8335e4",
   "lastOpenFiles": [
+    "Project/MyBlog/1.项目搭建与准备.md",
+    "XinZhou/我的账号.md",
+    "Project/MyBlog/2.博客前台模块.md",
     "Pics/Pasted image 20231227001611.png",
     "Pics/Pasted image 20231227001457.png",
     "Pics/Pasted image 20231227001451.png",
@@ -158,9 +161,6 @@
     "Project/IDance/SQL/player.md",
     "Project/IDance/SQL/user、unit.md",
     "Project/IDance/SQL/competition.md",
-    "Project/MyBlog/2.博客前台模块.md",
-    "Project/MyBlog/1.项目搭建与准备.md",
-    "XinZhou/我的账号.md",
     "Java/SpringSecurity/SpringSecurity study.md",
     "Java/函数式编程-Stream流.md",
     "Project/IDance/SQL",
@@ -187,7 +187,6 @@
     "Pics/Pasted image 20231223160659.png",
     "Pics/Pasted image 20231223141801.png",
     "Pics/Pasted image 20231223112341.png",
-    "Pics/Pasted image 20231223112232.png",
     "Project",
     "Project/MyBlog",
     "Java/MybatisPlus",
