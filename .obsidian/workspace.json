@@ -13,7 +13,7 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Project/MyBlog/2.博客前台模块.md",
+                "file": "XinZhou/我的账号.md",
                 "mode": "source",
                 "source": false
               }
@@ -85,7 +85,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Project/MyBlog/2.博客前台模块.md",
+                "file": "XinZhou/我的账号.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -102,7 +102,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Project/MyBlog/2.博客前台模块.md",
+                "file": "XinZhou/我的账号.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -125,7 +125,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Project/MyBlog/2.博客前台模块.md"
+                "file": "XinZhou/我的账号.md"
               }
             }
           }
@@ -149,9 +149,9 @@
   },
   "active": "1dbcb840ec8335e4",
   "lastOpenFiles": [
+    "Project/MyBlog/2.博客前台模块.md",
     "Project/MyBlog/1.项目搭建与准备.md",
     "XinZhou/我的账号.md",
-    "Project/MyBlog/2.博客前台模块.md",
     "Pics/Pasted image 20231227001611.png",
     "Pics/Pasted image 20231227001457.png",
     "Pics/Pasted image 20231227001451.png",
