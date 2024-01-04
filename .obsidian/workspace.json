@@ -4,19 +4,15 @@
     "type": "split",
     "children": [
       {
-        "id": "d43fb8e2698971cd",
+        "id": "eaacbf3e5a7a6115",
         "type": "tabs",
         "children": [
           {
-            "id": "8d7c36be1331b4aa",
+            "id": "2c321b7a794653da",
             "type": "leaf",
             "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Linux/Jenkins/1.Jenkins配置Maven+Git自动构建jar包.md",
-                "mode": "source",
-                "source": false
-              }
+              "type": "empty",
+              "state": {}
             }
           }
         ]
@@ -85,7 +81,6 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Linux/Jenkins/1.Jenkins配置Maven+Git自动构建jar包.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -102,7 +97,6 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Linux/Jenkins/1.Jenkins配置Maven+Git自动构建jar包.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -124,9 +118,7 @@
             "type": "leaf",
             "state": {
               "type": "outline",
-              "state": {
-                "file": "Linux/Jenkins/1.Jenkins配置Maven+Git自动构建jar包.md"
-              }
+              "state": {}
             }
           }
         ],
@@ -147,8 +139,10 @@
       "obsidian-hypothesis-plugin:Sync your hypothesis highlights": false
     }
   },
-  "active": "8d7c36be1331b4aa",
+  "active": "2c321b7a794653da",
   "lastOpenFiles": [
+    "Linux/Docker/1.概述.md",
+    "Linux/Jenkins/1.Jenkins配置Maven+Git自动构建jar包.md",
     "Linux/Jenkins/2.Jenkins配置自动化发布并运行.md",
     "Pics/Pasted image 20240104233943.png",
     "Pics/Pasted image 20240104233844.png",
@@ -156,7 +150,6 @@
     "Pics/Pasted image 20240104233820.png",
     "Pics/Pasted image 20240104233728.png",
     "Pics/Pasted image 20240104233723.png",
-    "Linux/Jenkins/1.Jenkins配置Maven+Git自动构建jar包.md",
     "Pics/Pasted image 20240104233358.png",
     "Pics/Pasted image 20240104233608.png",
     "Pics/Pasted image 20240104233550.png",
