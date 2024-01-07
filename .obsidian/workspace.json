@@ -4,23 +4,11 @@
     "type": "split",
     "children": [
       {
-        "id": "eaacbf3e5a7a6115",
+        "id": "418d866891306a7d",
         "type": "tabs",
         "children": [
           {
-            "id": "2c321b7a794653da",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Project/MyBlog/3.博客后台模块.md",
-                "mode": "source",
-                "source": false
-              }
-            }
-          },
-          {
-            "id": "85f306c081678d73",
+            "id": "d66048a318c14afa",
             "type": "leaf",
             "state": {
               "type": "markdown",
@@ -31,8 +19,7 @@
               }
             }
           }
-        ],
-        "currentTab": 1
+        ]
       }
     ],
     "direction": "vertical"
@@ -160,11 +147,20 @@
       "obsidian-hypothesis-plugin:Sync your hypothesis highlights": false
     }
   },
-  "active": "85f306c081678d73",
+  "active": "d66048a318c14afa",
   "lastOpenFiles": [
-    "Project/MyBlog/2.博客前台模块.md",
+    "Project/MyBlog/Utils/WebUtils.md",
     "Project/MyBlog/3.博客后台模块.md",
+    "Project/MyBlog/2.博客前台模块.md",
+    "Accessors(chain).md",
+    "XinZhou/我的账号.md",
     "Project/MyBlog/1.项目搭建与准备.md",
+    "Java/MybatisPlus/2.入门案例.md",
+    "Pics/Pasted image 20240106223129.png",
+    "Pics/Pasted image 20240106223057.png",
+    "Pics/Pasted image 20240106223016.png",
+    "Pics/Pasted image 20240106222945.png",
+    "Pics/Pasted image 20240106222905.png",
     "Pics/Pasted image 20240106002217.png",
     "Linux/Docker/1.概述.md",
     "Linux/Jenkins/1.Jenkins配置Maven+Git自动构建jar包.md",
@@ -173,13 +169,7 @@
     "Pics/Pasted image 20240104233844.png",
     "Pics/Pasted image 20240104233833.png",
     "Pics/Pasted image 20240104233820.png",
-    "Pics/Pasted image 20240104233728.png",
-    "Pics/Pasted image 20240104233723.png",
-    "Pics/Pasted image 20240104233358.png",
-    "Pics/Pasted image 20240104233608.png",
-    "Pics/Pasted image 20240104233550.png",
     "Linux/Jenkins",
-    "XinZhou/我的账号.md",
     "Linux",
     "Linux/Docker",
     "Project/IDance/SQL/代表队.md",
@@ -191,19 +181,16 @@
     "Project/IDance/SQL",
     "Project/IDance",
     "Java/MybatisPlus/5.常用注解.md",
-    "Project/MyBlog/Utils/WebUtils.md",
     "Project/MyBlog/Utils/RedisCache.md",
     "Project/MyBlog/Utils/JwtUtils.md",
     "Project/MyBlog/Utils/RedisConfig.md",
     "Project/MyBlog/Utils/FastJsonRedisSerializer.md",
     "Project/MyBlog/Utils",
-    "Java/MybatisPlus/2.入门案例.md",
     "Java/MybatisPlus/9.通用枚举.md",
     "Java/MybatisPlus/10.代码生成器.md",
     "Java/MybatisPlus/11.多数据源.md",
     "Java/MybatisPlus/12.MyBatisX插件.md",
     "Java/MybatisPlus/8.乐观锁插件.md",
-    "Java/MybatisPlus/6.条件构造器和常用接口.md",
     "Project",
     "Project/MyBlog",
     "Java/MybatisPlus",
