@@ -1,11 +1,11 @@
 {
   "accentColor": "",
   "cssTheme": "Minimal",
-  "textFontFamily": "iA Writer Quattro V Italic",
+  "textFontFamily": "iA Writer Quattro V",
   "baseFontSize": 20,
   "nativeMenus": false,
   "translucency": true,
-  "monospaceFontFamily": "SF Mono",
+  "monospaceFontFamily": "",
   "interfaceFontFamily": "SF Pro",
   "theme": "obsidian"
 }
