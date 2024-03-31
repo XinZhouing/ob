@@ -1,7 +1,7 @@
 # 快速入门
 ## 准备工作：创建一个 SpringBoot 工程
 ## 引入 SpringSecurity
-```java
+```xml
 <dependency>  
     <groupId>org.springframework.boot</groupId>  
     <artifactId>spring-boot-starter-security</artifactId>  

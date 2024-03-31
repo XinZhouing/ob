@@ -1,11 +1,12 @@
 {
-  "accentColor": "",
-  "cssTheme": "Minimal",
+  "accentColor": "#12e2d5",
+  "cssTheme": "",
   "textFontFamily": "iA Writer Quattro V",
-  "baseFontSize": 20,
+  "baseFontSize": 18,
   "nativeMenus": false,
   "translucency": true,
-  "monospaceFontFamily": "",
+  "monospaceFontFamily": "LXGW WenKai,iA Writer Quattro V",
   "interfaceFontFamily": "SF Pro",
-  "theme": "obsidian"
+  "theme": "moonstone",
+  "enabledCssSnippets": []
 }

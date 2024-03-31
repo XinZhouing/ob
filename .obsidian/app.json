@@ -1,3 +1,7 @@
 {
-  "showInlineTitle": false
+  "showInlineTitle": false,
+  "newFileLocation": "current",
+  "readableLineLength": true,
+  "livePreview": true,
+  "defaultViewMode": "preview"
 }

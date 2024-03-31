@@ -14,5 +14,13 @@
       ],
       "key": "U"
     }
+  ],
+  "editor:toggle-highlight": [
+    {
+      "modifiers": [
+        "Mod"
+      ],
+      "key": "H"
+    }
   ]
 }
